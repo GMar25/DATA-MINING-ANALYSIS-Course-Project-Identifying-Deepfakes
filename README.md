@@ -1,39 +1,63 @@
 # Identifying Deepfakes: A Data Mining Approach
 
-Deepfakes, AI-generated images indistinguishable from genuine photographs, pose a growing threat to information integrity, financial security, and personal identity. This project investigates whether **unsupervised data mining techniques** can serve as the backbone of a quickly adaptable deepfake detection system, using the [HiDF (Human-Indistinguishable Deepfake) dataset](https://dl.acm.org/doi/epdf/10.1145/3711896.3737399).
+Deepfakes, AI-generated face images indistinguishable from real photographs, are a growing threat to information integrity and financial security. Existing detection systems rely on fully supervised neural networks that require expensive retraining every time a new generator appears. This project investigates whether **unsupervised data mining techniques** can serve as the core detection mechanism in a system that is cheaper to adapt: one where the heavy neural lifting is done once by a frozen feature extractor, and the detection logic itself runs label-free on CPU. Using the HiDF (Human-Indistinguishable Deepfake) dataset, we trace a three-phase experimental journey from complete unsupervised failure to a hybrid "Fusion Gauntlet" pipeline that combines K-Means clustering and autoencoder anomaly scoring on top of ResNet-18 embeddings.
 
-The project traces a three-phase experimental journey: from a fully unsupervised approach that fails, through a supervised baseline that succeeds but contradicts the premise, to a hybrid **"Fusion Gauntlet"** pipeline combining deep neural embeddings with classical K-Means clustering and autoencoder anomaly detection.
+---
 
-## Start Here
+## 👉 Main Deliverable
 
-**Main deliverable:** [`main_notebook.ipynb`](main_notebook.ipynb)
+**[main_notebook.ipynb](main_notebook.ipynb)** -- start here. The full pipeline, analysis, and results are self-contained within this notebook.
 
-**Project video:** [YouTube Link](https://youtube.com) *(placeholder)*
+---
 
-## Research Questions
+## 🎥 Project Video
+
+**[Watch on YouTube](https://youtu.be/iuwT0HqfsoU)**
+Note: this video's results and techniques are somewhat outdated, but the overarching goal and approach are still relevant.
+
+---
+
+## Research Question
 
 > **Can unsupervised data mining techniques be used to build a quickly adaptable and accurate deepfake detector?**
 
-Investigated through three phases:
-1. **Phase 1:** Pure unsupervised (Custom Autoencoder + K-Means) -- does unsupervised work at all?
-2. **Phase 2:** Supervised pivot (ResNet-18 + Random Forest) -- is the problem solvable with better features?
-3. **Phase 3:** Hybrid fusion (ResNet embeddings + K-Means + Anomaly Detection) -- can we keep the features but drop the supervised classifier?
+Explored across three phases:
+
+| Phase | Approach | Verdict |
+|-------|----------|---------|
+| 1 | CAE embeddings + K-Means + LOF | Fails -- CAE discards the forensic signal |
+| 2 | ResNet-18 embeddings + K-Means + Random Forest | Works -- but requires labeled data |
+| 3 | ResNet-18 embeddings + K-Means + AE Fusion (5% labels) | Works -- minimal supervision |
+
+---
 
 ## Data
 
 - **Dataset:** [HiDF (Human-Indistinguishable Deepfake)](https://zenodo.org/records/16140829)
-- **Source:** Zenodo (downloaded automatically by the notebook)
-- **Contents:** Balanced set of real and AI-generated face images, plus demographic metadata
-- **Preprocessing:** Images are resized to 224x224 and normalized using ImageNet statistics for ResNet-18 feature extraction
+- **Format:** Two zip archives (`Real-img.zip`, `Fake-img.zip`) and a `metadata.csv`
+- **Size:** ~40,000+ balanced real/fake image pairs
+- **Source:** Zenodo (open access, no login required)
+- **Preprocessing:** Images are resized to 224x224 and normalized using ImageNet statistics for ResNet-18 feature extraction. All preprocessing is handled inside the notebook.
+
+---
 
 ## How to Reproduce
 
 This project was built and tested in **Google Colab with a T4 GPU**.
 
-1. Open `main_notebook.ipynb` in Google Colab
-2. Enable GPU runtime: `Runtime > Change runtime type > T4 GPU`
-3. Run all cells sequentially. The dataset downloads automatically from Zenodo on first run.
-4. See `requirements.txt` for the full Colab environment snapshot.
+**Data setup (one-time):**
+1. Download `Real-img.zip`, `Fake-img.zip`, and `metadata.csv` from [Zenodo](https://zenodo.org/records/16140829)
+2. Upload all three files to Google Drive under `MyDrive/DataMining/project_dataset/` (or more likely edit the paths in the notebook to point to your preferred location)
+
+**Running the pipeline:**
+1. Open `main_notebook.ipynb` in [Google Colab](https://colab.research.google.com)
+2. Enable GPU: `Runtime > Change runtime type > T4 GPU`
+3. Run all cells top to bottom. The notebook mounts your Drive, extracts the zips, and runs the full pipeline automatically.
+4. The final cell prints the Colab environment and saves `requirements.txt`.
+
+> The complete pipeline is also documented in `main_notebook.ipynb` as a self-contained walkthrough. The archive version used as the basis for the final pipeline is `archive/Final_Project_v34.ipynb`.
+
+---
 
 ## Key Dependencies
 
@@ -46,43 +70,41 @@ This project was built and tested in **Google Colab with a T4 GPU**.
 | pandas | 2.2+ |
 | numpy | 1.26+ |
 | matplotlib | 3.8+ |
-| seaborn | 0.13+ |
 | scipy | 1.12+ |
 
-Full dependency list: [`requirements.txt`](requirements.txt) (generated from Colab at the end of the notebook)
+Full pinned dependency list: [`requirements.txt`](requirements.txt) *(generated by running the notebook in Colab)*
+
+---
 
 ## Repository Structure
 
 ```
 .
-├── main_notebook.ipynb          # Main deliverable (start here)
-├── build_main_notebook.py       # Script that generates the notebook
+├── main_notebook.ipynb          # Main deliverable -- start here
 ├── README.md
+├── requirements.txt             # Colab environment snapshot (generated by notebook)
 ├── Presentation.pdf             # Project presentation slides
-├── requirements.txt             # Colab environment snapshot
 ├── .gitignore
+│
 ├── checkpoints/
-│   ├── Checkpoint_1.ipynb       # Dataset selection and EDA
-│   └── Checkpoint_2.ipynb       # Research question formation
-├── archive/                     # Previous experiment versions (v1-v34)
+│   ├── Checkpoint_1.ipynb       # Dataset selection, EDA, initial insights
+│   └── Checkpoint_2.ipynb       # Research question formation, feasibility analysis
+│
+├── archive/                     # All previous experiment versions (v1 through v34)
 │   ├── Final_Project_v1.ipynb
 │   ├── ...
-│   └── Final_Project_v34.ipynb
-├── tools/                       # Presentation graphics generators
-│   ├── Presentation_Graphics_Generator.ipynb
-│   └── ...
-└── sample_projects/             # Reference sample projects
+│   └── Final_Project_v34.ipynb  # Final standalone pipeline version
+│
+└── tools/                       # Presentation graphics generators and assets
 ```
+
+---
 
 ## Results Summary
 
-| Phase | Approach | Accuracy | AUC |
-|-------|----------|----------|-----|
-| Phase 1 | Unsupervised (Custom AE + K-Means) | ~50% | N/A |
-| Phase 2 | Supervised (ResNet + Random Forest) | High | High |
-| Phase 3 | Hybrid Fusion (5% labeled) | Competitive | Competitive |
+The final Fusion Gauntlet pipeline requires labeled data for only 5% of the dataset and a single fine-tuning epoch, while inference runs entirely label-free using K-Means distance scoring and autoencoder reconstruction error. Adapting to a new deepfake generator requires only light fine-tuning of the final encoder block plus a label-free re-run of the scoring pipeline, meaning no full retraining and no GPU at inference. The result is a detector that is highly adaptable and competitive on accuracy while remaining lightweight on supervision.
 
-Pure unsupervised detection fails, but unsupervised mining techniques (K-Means + autoencoder anomaly detection) are effective *when paired with competent feature extraction*. The supervised component can be minimized to a 5% data handicap and a single unfrozen layer, making the system rapidly adaptable to new threats.
+---
 
 ## Author
 
